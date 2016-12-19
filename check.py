@@ -103,28 +103,28 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
+for path in os.listdir("test_images"):
+    # reading in an image
+    image = mpimg.imread(os.path.join("test_images", path))
+    # # 1. Convert to gray scale
+    # gray = grayscale(image)
+    # # 2 Get region of interst
+    # interested_region = region_of_interest(gray, np.array([[[60, 539], [487, 195], [930, 539]]], dtype=np.int32))
+    # # 3. Only keep white pixels above a threshold
+    # white_threshold = 220
+    # color_select = np.copy(interested_region)
+    # color_select[color_select < white_threshold] = 0
+    # color_select[color_select >= white_threshold] = 255
+    # # printing out some stats and plotting
+    # print('This image is:', type(image), 'with dimesions:', image.shape)
+    # plt.imshow(color_select, cmap='gray')
+    # plt.show()  # call as plt.imshow(gray, cmap='gray') to show a grayscaled image
+    # pass
 
-# reading in an image
-image = mpimg.imread('test_images/solidWhiteRight.jpg')
-# # 1. Convert to gray scale
-# gray = grayscale(image)
-# # 2 Get region of interst
-# interested_region = region_of_interest(gray, np.array([[[60, 539], [487, 195], [930, 539]]], dtype=np.int32))
-# # 3. Only keep white pixels above a threshold
-# white_threshold = 220
-# color_select = np.copy(interested_region)
-# color_select[color_select < white_threshold] = 0
-# color_select[color_select >= white_threshold] = 255
-# # printing out some stats and plotting
-# print('This image is:', type(image), 'with dimesions:', image.shape)
-# plt.imshow(color_select, cmap='gray')
-# plt.show()  # call as plt.imshow(gray, cmap='gray') to show a grayscaled image
-# pass
-
-gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) #grayscale conversion
-gauss_blur_img = gaussian_blur(gray, 3)
-canny_img = canny(gauss_blur_img, 200, 400)
-interested_region_img = region_of_interest(canny_img, np.array([[[60, 539], [487, 195], [930, 539]]], dtype=np.int32))
-hough_lines_img = hough_lines(interested_region_img, 1, np.pi/180, 1, 10, 1)
-plt.imshow(hough_lines_img, cmap='gray')
-plt.show()
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) #grayscale conversion
+    gauss_blur_img = gaussian_blur(gray, 3)
+    canny_img = canny(gauss_blur_img, 100, 300)
+    interested_region_img = region_of_interest(canny_img, np.array([[[100, 539], [487, 300], [870, 539]]], dtype=np.int32))
+    hough_lines_img = hough_lines(interested_region_img, rho=2, theta=np.pi/180, threshold=25, min_line_len=40, max_line_gap=5)
+    plt.imshow(hough_lines_img, cmap='gray')
+    plt.show()
