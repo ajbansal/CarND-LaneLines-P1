@@ -75,6 +75,42 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
             cv2.line(img, (x1, y1), (x2, y2), color, thickness)
 
 
+def line_slope(line):
+    x1, y1, x2, y2  = line[0]
+    return float(y2-y1)/(x2-x1)
+
+
+def line_filter(lines, filter):
+    slope_filt_1, tolerance_1 = filter[0]
+    slope_filt_2, tolerance_2 = filter[1]
+    filtered_lines = [[], []]
+    for line in lines:
+        slope = line_slope(line)
+        if slope_filt_1 - tolerance_1 < slope < slope_filt_1 + tolerance_1:
+            filtered_lines[0].append(line)
+        elif slope_filt_2 - tolerance_2 < slope < slope_filt_2 + tolerance_2:
+            filtered_lines[1].append(line)
+    filtered_lines = combine_lines(filtered_lines)
+    return filtered_lines
+
+
+def combine_lines(lines):
+    combined_lines = []
+    for line in lines:
+        if len(line) == 1:
+            combined_lines.append(line)
+        else:
+            points = []
+            for l in line:
+                points.append(l[0][:2])
+                points.append(l[0][2:])
+            (vx, vy, x, y) = cv2.fitLine(np.array(points), cv2.DIST_L12, 0, 0.01, 0.01)
+            point_1 = (x[0], y[0])
+            point_2 = (x[0] + vx[0], y[0], + vy[0])
+            combined_lines.append([[x[0], y[0], x[0] + vx[0], y[0] + vy[0]]])
+    return combined_lines
+
+
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     """
     `img` should be the output of a Canny transform.
@@ -82,8 +118,9 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     Returns an image with hough lines drawn.
     """
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
+    lines = line_filter(lines, filter=[[0.5, 0.1], [-0.7, 0.1]])
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-    draw_lines(line_img, lines)
+    draw_lines(line_img, lines, thickness=10)
     return line_img
 
 
@@ -126,5 +163,27 @@ for path in os.listdir("test_images"):
     canny_img = canny(gauss_blur_img, 100, 300)
     interested_region_img = region_of_interest(canny_img, np.array([[[100, 539], [487, 300], [870, 539]]], dtype=np.int32))
     hough_lines_img = hough_lines(interested_region_img, rho=2, theta=np.pi/180, threshold=25, min_line_len=40, max_line_gap=5)
-    plt.imshow(hough_lines_img, cmap='gray')
+    gray2 = cv2.cvtColor(hough_lines_img, cv2.COLOR_RGB2GRAY) #grayscale conversion
+    gray2[gray2 > 0] = 255
+    no_zero_indices = hough_lines_img > 0
+
+    no_zero_indices_gradient = np.gradient(gray2, axis=0)
+    counter = 0
+    vertices_dict = {}
+    grads = set()
+    for i in no_zero_indices_gradient:
+        if any(i):
+            vertices_dict[counter] = []
+            sub_counter = 0
+            for j in i:
+                if j:
+                    grads.add(j)
+                    vertices_dict[counter].append(sub_counter)
+                sub_counter += 1
+        counter += 1
+        pass
+
+    weighted_image = weighted_img(hough_lines_img, image)
+    plt.imshow(weighted_image, cmap='gray')
     plt.show()
+    pass
