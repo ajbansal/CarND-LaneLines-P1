@@ -107,7 +107,7 @@ def combine_lines(lines):
                 points.append(l[0][:2])
                 points.append(l[0][2:])
             (vx, vy, x, y) = cv2.fitLine(np.array(points), cv2.DIST_L12, 0, 0.01, 0.01)
-            y1 = np.float32(YMAX/1.75)
+            y1 = np.float32(YMAX/1.6)
             x1 = np.float32(x[0] + ((y1 - y[0]) / vy[0]) * vx[0])
 
             y2 = np.float32(YMAX)
@@ -123,7 +123,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     Returns an image with hough lines drawn.
     """
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
-    # lines = line_filter(lines, filter=[[0.5, 0.2], [-0.6, 0.2]])
+    lines = line_filter(lines, filter=[[0.5, 0.2], [-0.6, 0.3]])
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
     draw_lines(line_img, lines, thickness=10)
     return line_img
@@ -145,9 +145,13 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
-for path in os.listdir("test_images")[1:]:
+
+def process_image(image):
+    # NOTE: The output you return should be a color image (3 channel) for processing video below
+    # TODO: put your pipeline here,
+    # you should return the final output (image with lines are drawn on lanes)
     # reading in an image
-    image = mpimg.imread(os.path.join("test_images", path))
+    # image = mpimg.imread(os.path.join("test_images", path))
     # # 1. Convert to gray scale
     # gray = grayscale(image)
     # # 2 Get region of interst
@@ -190,6 +194,15 @@ for path in os.listdir("test_images")[1:]:
         pass
 
     weighted_image = weighted_img(hough_lines_img, image)
-    plt.imshow(weighted_image, cmap='gray')
-    plt.show()
-    pass
+    return weighted_image
+
+if __name__ == "__main__":
+    white_output = 'white.mp4'
+    video1 = "solidWhiteRight.mp4"
+    video2 = "solidYellowLeft.mp4"
+    video3 = "challenge.mp4"
+    video = video2
+    video_new = "{}_new.mp4".format(video[:video.rfind(".")])
+    clip1 = VideoFileClip(video)
+    white_clip = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
+    white_clip.write_videofile(video_new, audio=False)
