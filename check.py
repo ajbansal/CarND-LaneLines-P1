@@ -9,18 +9,13 @@ from IPython.display import HTML
 
 import math
 
-def grayscale(img):
-    """Applies the Grayscale transform
-    This will return an image with only one color channel
-    but NOTE: to see the returned image as grayscale
-    you should call plt.imshow(gray, cmap='gray')"""
-    return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    # Or use BGR2GRAY if you read an image with cv2.imread()
-    # return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
 
 def canny(img, low_threshold, high_threshold):
-    """Applies the Canny transform"""
+    """Applies the Canny transform
+
+    Args:
+        img (numpy.ndarray): The image to apply canny transform
+    """
     return cv2.Canny(img, low_threshold, high_threshold)
 
 
@@ -107,7 +102,7 @@ def combine_lines(lines):
                 points.append(l[0][:2])
                 points.append(l[0][2:])
             (vx, vy, x, y) = cv2.fitLine(np.array(points), cv2.DIST_L12, 0, 0.01, 0.01)
-            y1 = np.float32(YMAX/1.75)
+            y1 = np.float32(YMAX/1.6)
             x1 = np.float32(x[0] + ((y1 - y[0]) / vy[0]) * vx[0])
 
             y2 = np.float32(YMAX)
@@ -123,7 +118,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     Returns an image with hough lines drawn.
     """
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
-    # lines = line_filter(lines, filter=[[0.5, 0.2], [-0.6, 0.2]])
+    lines = line_filter(lines, filter=[[0.5, 0.2], [-0.6, 0.3]])
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
     draw_lines(line_img, lines, thickness=10)
     return line_img
@@ -144,6 +139,7 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     NOTE: initial_img and img must be the same shape!
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
+
 
 for path in os.listdir("test_images")[1:]:
     # reading in an image
