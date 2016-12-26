@@ -75,7 +75,7 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
 
 
 def line_slope(line):
-    x1, y1, x2, y2  = line[0]
+    x1, y1, x2, y2 = line[0]
     return float(y2-y1)/(x2-x1)
 
 
@@ -121,7 +121,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     Returns an image with hough lines drawn.
     """
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
-    lines = line_filter(lines, filter=[[0.5, 0.1], [-0.7, 0.1]])
+    lines = line_filter(lines, filter=[[0.5, 0.2], [-0.6, 0.2]])
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
     draw_lines(line_img, lines, thickness=10)
     return line_img
@@ -143,7 +143,7 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
-for path in os.listdir("test_images"):
+for path in os.listdir("test_images")[1:]:
     # reading in an image
     image = mpimg.imread(os.path.join("test_images", path))
     # # 1. Convert to gray scale
