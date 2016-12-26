@@ -7,7 +7,6 @@ import os
 
 import math
 
-
 def grayscale(img):
     """Applies the Grayscale transform
     This will return an image with only one color channel
@@ -96,6 +95,7 @@ def line_filter(lines, filter):
 
 def combine_lines(lines):
     combined_lines = []
+    global YMAX
     for line in lines:
         if len(line) == 1:
             combined_lines.append(line)
@@ -105,9 +105,12 @@ def combine_lines(lines):
                 points.append(l[0][:2])
                 points.append(l[0][2:])
             (vx, vy, x, y) = cv2.fitLine(np.array(points), cv2.DIST_L12, 0, 0.01, 0.01)
-            point_1 = (x[0], y[0])
-            point_2 = (x[0] + vx[0], y[0], + vy[0])
-            combined_lines.append([[x[0], y[0], x[0] + vx[0], y[0] + vy[0]]])
+            y1 = np.float32(YMAX/1.75)
+            x1 = np.float32(x[0] + ((y1 - y[0]) / vy[0]) * vx[0])
+
+            y2 = np.float32(YMAX)
+            x2 = np.float32(x[0] + ((y2 - y[0])/vy[0]) * vx[0])
+            combined_lines.append([[x1, y1, x2, y2]])
     return combined_lines
 
 
@@ -157,7 +160,8 @@ for path in os.listdir("test_images"):
     # plt.imshow(color_select, cmap='gray')
     # plt.show()  # call as plt.imshow(gray, cmap='gray') to show a grayscaled image
     # pass
-
+    global YMAX
+    YMAX = np.float32(image.shape[0])
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) #grayscale conversion
     gauss_blur_img = gaussian_blur(gray, 3)
     canny_img = canny(gauss_blur_img, 100, 300)
