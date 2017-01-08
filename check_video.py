@@ -257,7 +257,7 @@ def process_image(image):
     interested_region_img = region_of_interest(canny_img, np.array([[[100, 539], [487, 300], [870, 539]]], dtype=np.int32))
 
     # Draw hough lines and extrapolate them to entire lane
-    hough_lines_img = hough_lines(interested_region_img, rho=2, theta=np.pi/180, threshold=25, min_line_len=10, max_line_gap=5)
+    hough_lines_img = hough_lines(interested_region_img, rho=2, theta=np.pi/180, threshold=35, min_line_len=10, max_line_gap=5)
 
     # Add lines to original image
     weighted_image = weighted_img(hough_lines_img, image)
@@ -271,17 +271,19 @@ if __name__ == "__main__":
     video1 = "solidWhiteRight.mp4"
     video2 = "solidYellowLeft.mp4"
 
-    # The video we are using
-    video = video1
-
     # Name of new video
-    video_new = "{}_new.mp4".format(video[:video.rfind(".")])
+    for video in [video1, video2]:
+        video_new = "{}_new.mp4".format(video[:video.rfind(".")])
 
-    # Load the video
-    clip1 = VideoFileClip(video)
+        print("Loading {}".format(video))
 
-    # Give the function to process all images
-    new_video_clip = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
+        # Load the video
+        clip1 = VideoFileClip(video)
 
-    # Output the new file
-    new_video_clip.write_videofile(video_new, audio=False)
+        # Give the function to process all images
+        new_video_clip = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
+
+        print("Processing {}".format(video_new))
+
+        # Output the new file
+        new_video_clip.write_videofile(video_new, audio=False)
